@@ -1,0 +1,13 @@
+package com.company.authservice.model.dto.enumDto;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.SuperBuilder;
+
+@RequiredArgsConstructor
+@Getter
+@SuperBuilder
+public class DescriptiveEnumDto {
+    private final String code;
+    private final String description;
+}

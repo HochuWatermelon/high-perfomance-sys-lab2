@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="work" author="admin">
+        <createTable tableName="work">
+            <column name="id" type="uuid" autoIncrement="false">
+                <constraints primaryKey="true" primaryKeyName="pk_work_id"/>
+            </column>
+            <column name="work_object" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="required_edits" type="varchar">
+                <constraints nullable="true"/>
+            </column>
+            <column name="accepted_by_customer" type="boolean">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+    </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="worker_profession" author="admin">
+        <createTable tableName="worker_profession">
+            <column name="worker_id" type="uuid">
+                <constraints primaryKey="true" primaryKeyName="pk_profession_worker_worker_id"/>
+            </column>
+            <column name="profession_id" type="uuid">
+                <constraints primaryKey="true" primaryKeyName="pk_profession_worker_profession_id"/>
+            </column>
+            <column name="rank" type="varchar(32)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="worker_profession" baseColumnNames="worker_id"
+                                 referencedTableName="worker" referencedColumnNames="id"
+                                 constraintName="fk_profession_worker_worker_id"/>
+        <addForeignKeyConstraint baseTableName="worker_profession" baseColumnNames="profession_id"
+                                 referencedTableName="profession" referencedColumnNames="id"
+                                 constraintName="fk_profession_worker_profession_id"/>
+    </changeSet>
+</databaseChangeLog>

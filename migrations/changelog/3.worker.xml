@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="worker" author="admin">
+        
+        <createTable tableName="worker">
+            <column name="id" type="uuid" autoIncrement="false">
+                <constraints primaryKey="true" primaryKeyName="pk_worker_id"/>
+            </column>
+            <column name="first_name" type="varchar(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="second_name" type="varchar(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="middle_name" type="varchar(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="registration_time" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="number_of_completed_orders" type="int" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rating" type="double" defaultValue="0.0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <sql>
+            ALTER TABLE worker ADD CONSTRAINT rating_check CHECK (rating &gt;= 0.0 AND rating &lt;= 5.0)
+        </sql>
+
+    </changeSet>
+</databaseChangeLog>

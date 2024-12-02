@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="order" author="admin">
+        <createTable tableName="order">
+            <column name="id" type="uuid" autoIncrement="false">
+                <constraints primaryKey="true" primaryKeyName="pk_order_id"/>
+            </column>
+            <column name="worker_id" type="uuid">
+                <constraints nullable="true"/>
+            </column>
+            <column name="customer_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="profession_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="order_status_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_time" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="started_time" type="datetime">
+                <constraints nullable="true"/>
+            </column>
+            <column name="finished_time" type="datetime">
+                <constraints nullable="true"/>
+            </column>
+            <column name="cost" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(512)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="order" baseColumnNames="worker_id"
+                                 referencedTableName="worker" referencedColumnNames="id"
+                                 constraintName="fk_order_worker_id"/>
+        <addForeignKeyConstraint baseTableName="order" baseColumnNames="customer_id"
+                                 referencedTableName="customer" referencedColumnNames="id"
+                                 constraintName="fk_order_customer_id"/>
+        <addForeignKeyConstraint baseTableName="order" baseColumnNames="profession_id"
+                                 referencedTableName="profession" referencedColumnNames="id"
+                                 constraintName="fk_order_profession_id"/>
+        <addForeignKeyConstraint baseTableName="order" baseColumnNames="order_status_id"
+                                 referencedTableName="order_status" referencedColumnNames="id"
+                                 constraintName="fk_order_status_id"/>
+    </changeSet>
+</databaseChangeLog>

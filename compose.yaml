@@ -1,0 +1,107 @@
+version: '3.8'
+services:
+  database:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: freelance
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - bestie
+
+  liquibase-migrations:
+    image: liquibase/liquibase:4.18
+    depends_on:
+      database:
+        condition: service_started
+    command:
+      - --hub-mode=off
+      - --changelog-file=master.xml
+      - --driver=org.postgresql.Driver
+      - --url=jdbc:postgresql://database:5432/freelance
+      - --username=admin
+      - --password=123
+      - update
+    volumes:
+      - ./migrations:/liquibase/changelog
+    networks:
+      - bestie
+
+  config-server:
+    build:
+      context: .
+      dockerfile: ./config-server/Dockerfile
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    depends_on:
+      - database
+      - liquibase-migrations
+    networks:
+      bestie:
+        aliases:
+          - "config-server"
+
+  eureka-server:
+    build:
+      context: .
+      dockerfile: ./eureka-server/Dockerfile
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    depends_on:
+      config-server:
+        condition: service_started
+    networks:
+      bestie:
+        aliases:
+          - "eureka-server"
+
+  gateway-server:
+    build:
+      context: .
+      dockerfile: ./gateway-server/Dockerfile
+    container_name: gateway-server
+    ports:
+      - "8088:8088"
+    depends_on:
+      config-server:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+    networks:
+      bestie:
+        aliases:
+          - "gateway-server"
+
+  monolit-service:
+    build:
+      context: .
+      dockerfile: ./monolit-service/Dockerfile
+    container_name: monolit-service
+    ports:
+      - "8089:8089"
+    depends_on:
+      config-server:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+      gateway-server:
+        condition: service_started
+    networks:
+      bestie:
+        aliases:
+          - "monolit-service"
+
+volumes:
+  postgres_data:
+
+networks:
+  bestie:
+    driver: bridge
+
