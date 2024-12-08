@@ -14,10 +14,31 @@ services:
     networks:
       - bestie
 
+
+  liquibase-migrations-auth:
+    image: liquibase/liquibase:4.18
+    depends_on:
+      database:
+        condition: service_started
+    command:
+      - --hub-mode=off
+      - --changelog-file=master-auth.xml
+      - --driver=org.postgresql.Driver
+      - --url=jdbc:postgresql://database:5432/freelance-users
+      - --username=admin
+      - --password=123
+      - update
+    volumes:
+      - ./migrations:/liquibase/changelog
+    networks:
+      - bestie
+
   liquibase-migrations:
     image: liquibase/liquibase:4.18
     depends_on:
       database:
+        condition: service_started
+      liquibase-migrations-auth:
         condition: service_started
     command:
       - --hub-mode=off
@@ -79,6 +100,46 @@ services:
         aliases:
           - "gateway-server"
 
+  admin-service:
+    build:
+      context: .
+      dockerfile: ./admin-service/Dockerfile
+    container_name: admin-service
+    ports:
+      - "8087:8087"
+    depends_on:
+      config-server:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+      gateway-server:
+        condition: service_started
+    networks:
+      bestie:
+        aliases:
+          - "admin-service"
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: ./auth-service/Dockerfile
+    container_name: auth-service
+    ports:
+      - "8086:8086"
+    depends_on:
+      config-server:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+      gateway-server:
+        condition: service_started
+      admin-service:
+        condition: service_started
+    networks:
+      bestie:
+        aliases:
+          - "auth-service"
+
   monolit-service:
     build:
       context: .
@@ -92,6 +153,8 @@ services:
       eureka-server:
         condition: service_started
       gateway-server:
+        condition: service_started
+      auth-service:
         condition: service_started
     networks:
       bestie:
