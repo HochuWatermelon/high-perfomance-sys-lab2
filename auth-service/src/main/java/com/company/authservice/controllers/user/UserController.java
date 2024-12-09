@@ -59,11 +59,4 @@ public class UserController {
         return userService.unblock(id).then();
     }
 
-    @PatchMapping("/{id}/confirm")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAnyAuthority('SUPERVISOR')")
-    public Mono<Void> confirm(@PathVariable UUID id) {
-        return userService.confirm(id).then();
-    }
-
 }

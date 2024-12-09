@@ -69,15 +69,6 @@ public class UserService {
     }
 
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    public Mono<User> confirm(UUID id) {
-        logger.info("Confirm user with id {}", id);
-        return find(id).flatMap(user -> {
-            user.setConfirmed(true);
-            return userRepository.save(user);
-        });
-    }
-
-    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public Mono<Void> delete(String fullName) {
         logger.info("Delete user with name {}", fullName);
         return find(fullName).flatMap(userRepository::delete);

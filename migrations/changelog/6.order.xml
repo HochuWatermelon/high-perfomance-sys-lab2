@@ -40,9 +40,6 @@
         <addForeignKeyConstraint baseTableName="order" baseColumnNames="worker_id"
                                  referencedTableName="worker" referencedColumnNames="id"
                                  constraintName="fk_order_worker_id"/>
-        <addForeignKeyConstraint baseTableName="order" baseColumnNames="customer_id"
-                                 referencedTableName="customer" referencedColumnNames="id"
-                                 constraintName="fk_order_customer_id"/>
         <addForeignKeyConstraint baseTableName="order" baseColumnNames="profession_id"
                                  referencedTableName="profession" referencedColumnNames="id"
                                  constraintName="fk_order_profession_id"/>
