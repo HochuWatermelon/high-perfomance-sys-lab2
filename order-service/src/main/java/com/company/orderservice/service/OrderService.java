@@ -2,30 +2,22 @@ package com.company.orderservice.service;
 
 
 import com.company.orderservice.model.dto.pageable.PageableGetDto;
-import com.company.orderservice.model.dto.waitingworker.WaitingWorkerGetDto;
-import com.company.orderservice.model.dto.worker.WorkerDto;
-import com.company.workservice.service.ProfessionService;
-import com.company.workservice.service.WaitingWorkerService;
-import com.company.workservice.service.WorkerProfessionService;
-import com.company.workservice.service.WorkerService;
+import com.company.orderservice.service.clients.WorkerServiceClient;
+import com.company.orderservice.util.SecurityContext;
+import com.company.workerservice.model.dto.profession.WorkerProfessionDto;
+import com.company.workerservice.model.dto.worker.WorkerDto;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import com.company.orderservice.exceptions.MethodNotAllowedException;
 import com.company.orderservice.exceptions.NotEnoughRightsException;
 import com.company.orderservice.exceptions.OrderNotFoundException;
-import com.company.orderservice.model.dto.customer.CustomerSelfDto;
 import com.company.orderservice.model.dto.order.OrderDto;
 import com.company.orderservice.model.dto.order.OrderPostDto;
 import com.company.orderservice.model.dto.order.OrderPutDto;
-import com.company.orderservice.model.dto.waitingworker.WaitingWorkerPostDto;
-import com.company.orderservice.model.entity.CustomerEntity;
 import com.company.orderservice.model.entity.OrderEntity;
 import com.company.orderservice.model.entity.OrderStatusEntity;
-import com.company.orderservice.model.entity.ProfessionEntity;
 import com.company.orderservice.model.entity.WaitingWorkerEntity;
-import com.company.orderservice.model.entity.WorkerEntity;
-import com.company.orderservice.model.entity.WorkerProfessionEntity;
 import com.company.orderservice.model.mapper.OrderMapper;
 import com.company.orderservice.repository.OrderRepository;
 import org.springframework.data.domain.Page;
@@ -48,16 +40,20 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
     private final OrderStatusService orderStatusService;
+    private final WaitingWorkerService waitingWorkerService;
+    private final WorkerServiceClient workerServiceClient;
 
 
     @Transactional
-    public ResponseEntity<String> createOrder(OrderPostDto orderDto, UUID customerId){
+    public ResponseEntity<String> createOrder(OrderPostDto orderDto){
+        UUID customerId = SecurityContext.getAuthorizedUserId();
+        String customerName = SecurityContext.getAuthorizedUserName();
         OrderEntity order = orderMapper.orderPostDtoToEntity(orderDto);
-        CustomerEntity customer = customerService.findCustomerById(customerId);
-        ProfessionEntity profession = professionService.findProfessionByName(orderDto.getProfession_name());
+        String profession = workerServiceClient.getProfessionByName(orderDto.getProfession_name()).getName();
         OrderStatusEntity orderStatus = orderStatusService.findOrderStatusByCode("NEW");
-        order.setCustomer(customer);
-        order.setProfession(profession);
+        order.setCustomerName(customerName);
+        order.setCustomerId(customerId);
+        order.setProfessionName(profession);
         order.setOrderStatus(orderStatus);
         orderRepository.save(order);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -69,8 +65,8 @@ public class OrderService {
                 new OrderNotFoundException(String.format("Заказ с id = %s не был найден", orderId)));
     }
 
-    public List<OrderEntity> findOrdersByOrderStatusCodeAndProfessionId(String code, UUID professionId) {
-        return orderRepository.findByOrderStatusCodeAndProfessionId(code, professionId);
+    public List<OrderEntity> findOrdersByOrderStatusCodeAndProfessionName(String code, String professionName) {
+        return orderRepository.findByOrderStatusCodeAndProfessionName(code, professionName);
     }
 
     public ResponseEntity<String> updateOrder(UUID orderId, OrderPutDto orderDto) {
@@ -82,9 +78,10 @@ public class OrderService {
     }
 
     @Transactional
-    public ResponseEntity<String> getNewOrders(UUID workerId) {
-        WorkerProfessionEntity workerProfession = workerProfessionService.findWorkerProfessionByWorkerId(workerId);
-        List<OrderEntity> newOrdersEntity = findOrdersByOrderStatusCodeAndProfessionId("NEW", workerProfession.getProfession().getId());
+    public ResponseEntity<String> getNewOrders() {
+        UUID workerId = SecurityContext.getAuthorizedUserId();
+        WorkerProfessionDto workerProfessionDto = workerServiceClient.getWorkerProfessionByWorkerId(workerId);
+        List<OrderEntity> newOrdersEntity = findOrdersByOrderStatusCodeAndProfessionName("NEW", workerProfessionDto.getProfessionName());
         HttpHeaders headers = new HttpHeaders();
         if (!newOrdersEntity.isEmpty()) {
             String response = newOrdersEntity.stream().map(orderEntity -> {
@@ -105,13 +102,13 @@ public class OrderService {
     }
 
     @Transactional
-    public ResponseEntity<String> subscribeToOrder(WaitingWorkerPostDto waitingWorkerDto, UUID orderId) {
-        WorkerEntity worker = workerService.findWorkerById(waitingWorkerDto.getWorker_id());
+    public ResponseEntity<String> subscribeToOrder(UUID orderId) {
+        UUID workerId = SecurityContext.getAuthorizedUserId();
         OrderEntity order = findOrderById(orderId);
-        WorkerProfessionEntity workerProfession = workerProfessionService.findWorkerProfessionByWorkerId(worker.getId());
-        if (workerProfession.getProfession().getId().equals(order.getProfession().getId())) {
+        WorkerProfessionDto workerProfessionDto = workerServiceClient.getWorkerProfessionByWorkerId(workerId);
+        if (workerProfessionDto.getProfessionName().equals(order.getProfessionName())) {
             if ("NEW".equals(order.getOrderStatus().getCode())) {
-                WaitingWorkerEntity waitingWorker = new WaitingWorkerEntity(worker, order);
+                WaitingWorkerEntity waitingWorker = new WaitingWorkerEntity(workerId, order);
                 waitingWorkerService.saveWaitingWorker(waitingWorker);
                 return ResponseEntity.status(HttpStatus.OK)
                         .body(String.format("Вы добавлены в список, желающих выполнить заказ с id = %s, ожидайте решения Заказчика.", orderId));
@@ -119,12 +116,13 @@ public class OrderService {
                 throw new MethodNotAllowedException(String.format("Заказ с id = %s больше недоступен для взятия в исполнение.", orderId));
             }
         } else {
-            throw new NotEnoughRightsException(String.format("Для данного заказа требуется работник с профессией id = %s", order.getProfession().getId()));
+            throw new NotEnoughRightsException(String.format("Для данного заказа требуется работник с профессией name = %s", order.getProfessionName()));
         }
     }
 
     @Transactional
-    public ResponseEntity<String> getWaitingWorkersForOrderByCustomerId(UUID orderId, UUID customerId, PageableGetDto pageableGetDto) {
+    public ResponseEntity<String> getWaitingWorkersForOrderByCustomerId(UUID orderId, PageableGetDto pageableGetDto) {
+        UUID customerId = SecurityContext.getAuthorizedUserId();
         Pageable pageable = PageRequest.of(pageableGetDto.getPage(), pageableGetDto.getSize());
         List<WaitingWorkerEntity> waitingWorkers = waitingWorkerService.findByOrderCustomerIdAndOrderId(customerId, orderId);
         Page<WaitingWorkerEntity> waitingWorkersPage = waitingWorkerService.findByOrderCustomerIdAndOrderId(customerId, orderId, pageable);
@@ -135,7 +133,7 @@ public class OrderService {
                         .body("На этой странице данных нет, попробуйте меньшее значение page или size.");
             }
             String response = waitingWorkersPage.getContent().stream().map(waitingWorkerEntity -> {
-                WorkerDto worker = workerService.workerToWorkerDto(waitingWorkerEntity.getWorker());
+                WorkerDto worker = workerServiceClient.getWorkerByWorkerId(waitingWorkerEntity.getWaitingWorkerId().getWorkerId());
                 return worker.toString();
             }).collect(Collectors.joining("\n\n"));
             headers.add("X-Total-Count", String.valueOf(waitingWorkers.size()));
@@ -151,15 +149,13 @@ public class OrderService {
     }
 
     @Transactional
-    public ResponseEntity<String> addWorkerToOrder(UUID workerId, CustomerSelfDto customerSelfDto) {
-        UUID orderId = customerSelfDto.getOrder_id();
-        UUID customerId = customerSelfDto.getCustomer_id();
+    public ResponseEntity<String> addWorkerToOrder(UUID workerId, UUID orderId) {
+        UUID customerId = SecurityContext.getAuthorizedUserId();
         WaitingWorkerEntity waitingWorker = waitingWorkerService
                 .findWaitingWorkerByWorkerIdAndOrderIdAndOrderCustomerId(workerId, orderId, customerId);
         OrderEntity order = waitingWorker.getOrder();
-        WorkerEntity worker = waitingWorker.getWorker();
-        if ("NEW".equals(order.getOrderStatus().getCode()) && order.getWorker() == null) {
-            order.setWorker(worker);
+        if ("NEW".equals(order.getOrderStatus().getCode()) && order.getWorkerId() == null) {
+            order.setWorkerId(workerId);
             order.setOrderStatus(orderStatusService.findOrderStatusByCode("IN_WORK"));
             orderRepository.save(order);
             waitingWorkerService.deleteWaitingWorker(waitingWorker);
@@ -171,9 +167,10 @@ public class OrderService {
     }
 
     @Transactional
-    public ResponseEntity<String> payForOrder(UUID orderId, UUID customerId) {
+    public ResponseEntity<String> payForOrder(UUID orderId) {
+        UUID customerId = SecurityContext.getAuthorizedUserId();
         OrderEntity order = findOrderById(orderId);
-        if (order.getCustomer_id().equals(customerId)) {
+        if (order.getCustomerId().equals(customerId)) {
             if ("FINISHED".equals(order.getOrderStatus().getCode())) {
                 order.setOrderStatus(orderStatusService.findOrderStatusByCode("PAID"));
                 orderRepository.save(order);
@@ -185,15 +182,6 @@ public class OrderService {
         }else {
             throw new NotEnoughRightsException(String.format("Заказчик с id = %s не имеет доступа к заказу с id = %s.", customerId, order.getId()));
         }
-    }
-
-
-    public Page<OrderEntity> findOrderWithWorkByWorkerId(UUID workerId, Pageable pageable) {
-        return orderRepository.findByWorkerIdAndWorkNotNull(workerId, pageable);
-    }
-
-    public List<OrderEntity> findOrderWithWorkByWorkerId(UUID workerId) {
-        return orderRepository.findByWorkerIdAndWorkNotNull(workerId);
     }
 
     public void saveOrder(OrderEntity order) {

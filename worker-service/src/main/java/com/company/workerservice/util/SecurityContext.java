@@ -1,4 +1,4 @@
-package com.company.orderservice.util;
+package com.company.workerservice.util;
 
 import jakarta.ws.rs.ForbiddenException;
 import org.springframework.security.core.Authentication;

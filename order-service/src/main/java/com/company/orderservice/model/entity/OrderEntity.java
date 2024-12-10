@@ -1,9 +1,6 @@
 package com.company.orderservice.model.entity;
 
 
-import com.company.workservice.model.entity.ProfessionEntity;
-import com.company.workservice.model.entity.WorkEntity;
-import com.company.workservice.model.entity.WorkerEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -29,20 +26,21 @@ public class OrderEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne
-    @JoinColumn(name = "worker_id")
-    private WorkerEntity worker;
+    @Column(name = "worker_id")
+    private UUID workerId;
+
+    @Column(name = "customer_name")
+    private String customerName;
 
     @Column(name = "customer_id")
-    private UUID customer_id;
+    private UUID customerId;
 
     @OneToOne (cascade = CascadeType.ALL)
     @JoinColumn(name = "work_id")
     private WorkEntity work;
 
-    @ManyToOne
-    @JoinColumn(name = "profession_id")
-    private ProfessionEntity profession;
+    @Column(name = "profession_name")
+    private String professionName;
 
     @ManyToOne
     private OrderStatusEntity orderStatus;
@@ -61,11 +59,5 @@ public class OrderEntity {
 
     @Column(nullable = false, length = 512)
     private String description;
-
-    public OrderEntity(ProfessionEntity profession, Integer cost, String description) {
-        this.profession = profession;
-        this.cost = cost;
-        this.description = description;
-    }
 
 }

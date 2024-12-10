@@ -15,15 +15,14 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
         uses = {EnumMapper.class})
 public interface OrderMapper {
 
-    @Mapping(target = "worker", ignore = true)
-    @Mapping(target = "customer", ignore = true)
-    @Mapping(target = "profession", ignore = true)
+    @Mapping(target = "workerId", ignore = true)
+    @Mapping(target = "customerId", ignore = true)
+    @Mapping(target = "professionName", ignore = true)
     @Mapping(target = "work", ignore = true)
     OrderEntity orderPostDtoToEntity(OrderPostDto orderPostDto);
 
 
-    @Mapping(target = "customerFirstName", source = "customer.firstName")
-    @Mapping(target = "customerSecondName", source = "customer.secondName")
+    @Mapping(target = "customerFullName", source = "customerName")
     @Mapping(target = "orderStatusType", source = "orderStatus.orderStatusType")
     OrderDto orderEntityToOrderDto(OrderEntity orderEntity);
 

@@ -9,8 +9,7 @@ import java.util.UUID;
 @Data
 public class OrderDto {
     private UUID id;
-    private String customerFirstName;
-    private String customerSecondName;
+    private String customerFullName;
     private OrderStatusType orderStatusType;
     private Instant createdTime;
     private Integer cost;
@@ -18,6 +17,6 @@ public class OrderDto {
 
     @Override
     public String toString() {
-        return "ID заказа: " + id + "\nСтатус заказа: " + orderStatusType + "\nДата создания: " + createdTime + "\nЗаказчик: " + customerSecondName + " " + customerFirstName + "\nСтоимость: " + cost + "\nОписание: " + description;
+        return "ID заказа: " + id + "\nСтатус заказа: " + orderStatusType + "\nДата создания: " + createdTime + "\nЗаказчик: " + customerFullName + "\nСтоимость: " + cost + "\nОписание: " + description;
     }
 }

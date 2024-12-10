@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <include file="changelog/1.order_status.xml" relativeToChangelogFile="true"/>
+    <include file="changelog/10.work.xml" relativeToChangelogFile="true"/>
+    <include file="changelog/6.order.xml" relativeToChangelogFile="true"/>
+    <include file="changelog/11.add-work-id-field-to-order.xml" relativeToChangelogFile="true"/>
+    <include file="changelog/8.waiting_worker.xml" relativeToChangelogFile="true"/>
+</databaseChangeLog>

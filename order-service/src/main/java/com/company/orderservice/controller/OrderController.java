@@ -1,17 +1,11 @@
 package com.company.orderservice.controller;
 
 
-import com.company.orderservice.configurations.security.SecurityConfiguration;
 import com.company.orderservice.model.dto.pageable.PageableGetDto;
-import com.company.orderservice.model.dto.waitingworker.WaitingWorkerGetDto;
-import com.company.orderservice.util.SecurityContext;
-import com.company.workservice.util.ReactiveSecurityContext;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import com.company.orderservice.model.dto.customer.CustomerSelfDto;
 import com.company.orderservice.model.dto.order.OrderPostDto;
 import com.company.orderservice.model.dto.order.OrderPutDto;
-import com.company.orderservice.model.dto.waitingworker.WaitingWorkerPostDto;
 import com.company.orderservice.service.OrderService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -34,10 +28,10 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    @PostMapping("/{customerId}")
+    @PostMapping
     @PreAuthorize("hasAnyAuthority('CUSTOMER')")
-    public ResponseEntity<String> createOrder(@Valid @RequestBody OrderPostDto orderDto, @PathVariable UUID customerId) {
-        return orderService.createOrder(orderDto, customerId);
+    public ResponseEntity<String> createOrder(@Valid @RequestBody OrderPostDto orderDto) {
+        return orderService.createOrder(orderDto);
     }
 
     @PutMapping("/{orderId}")
@@ -46,16 +40,16 @@ public class OrderController {
         return orderService.updateOrder(orderId, orderDto);
     }
 
-    @GetMapping("/get-new-orders/{workerId}")
+    @GetMapping("/get-new-orders")
     @PreAuthorize("hasAnyAuthority('WORKER')")
-    public ResponseEntity<String> getNewOrders(@PathVariable UUID workerId) {
-        return orderService.getNewOrders(workerId);
+    public ResponseEntity<String> getNewOrders(){
+        return orderService.getNewOrders();
     }
 
     @PostMapping("/subscribe/{orderId}")
     @PreAuthorize("hasAnyAuthority('WORKER')")
-    public ResponseEntity<String> subscribeToOrder(@PathVariable UUID orderId, @Valid @RequestBody WaitingWorkerPostDto waitingWorkerDto) {
-        return orderService.subscribeToOrder(waitingWorkerDto, orderId);
+    public ResponseEntity<String> subscribeToOrder(@PathVariable UUID orderId) {
+        return orderService.subscribeToOrder(orderId);
     }
 
     @GetMapping("/get-waiting-workers/{orderId}")
@@ -64,20 +58,18 @@ public class OrderController {
         if (pageableGetDto == null) {
             pageableGetDto = new PageableGetDto(0, 50);
         }
-        UUID customerId = SecurityContext.getAuthorizedUserId();
-        return orderService.getWaitingWorkersForOrderByCustomerId(orderId, customerId, pageableGetDto);
+        return orderService.getWaitingWorkersForOrderByCustomerId(orderId, pageableGetDto);
     }
 
-    @PutMapping("/add-worker-to-order/{workerId}")
+    @PutMapping("/add-worker-to-order/{orderId}/{workerId}")
     @PreAuthorize("hasAnyAuthority('CUSTOMER')")
-    public ResponseEntity<String> addWorkerToOrder(@PathVariable UUID workerId, @Valid @RequestBody CustomerSelfDto customerSelfDto){
-        return orderService.addWorkerToOrder(workerId, customerSelfDto);
+    public ResponseEntity<String> addWorkerToOrder(@PathVariable(value = "orderId") UUID orderId, @PathVariable(value = "workerId") UUID workerId){
+        return orderService.addWorkerToOrder(workerId, orderId);
     }
 
     @PutMapping("/pay-for-order/{orderId}")
     @PreAuthorize("hasAnyAuthority('CUSTOMER')")
     public ResponseEntity<String> payForOrder(@PathVariable UUID orderId){
-        UUID customerId = SecurityContext.getAuthorizedUserId();
-        return orderService.payForOrder(orderId, customerId);
+        return orderService.payForOrder(orderId);
     }
 }

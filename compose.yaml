@@ -33,7 +33,7 @@ services:
     networks:
       - bestie
 
-  liquibase-migrations:
+  liquibase-migrations-worker:
     image: liquibase/liquibase:4.18
     depends_on:
       database:
@@ -42,9 +42,29 @@ services:
         condition: service_started
     command:
       - --hub-mode=off
-      - --changelog-file=master.xml
+      - --changelog-file=master-worker.xml
       - --driver=org.postgresql.Driver
-      - --url=jdbc:postgresql://database:5432/freelance
+      - --url=jdbc:postgresql://database:5432/freelance-worker
+      - --username=admin
+      - --password=123
+      - update
+    volumes:
+      - ./migrations:/liquibase/changelog
+    networks:
+      - bestie
+
+  liquibase-migrations-order:
+    image: liquibase/liquibase:4.18
+    depends_on:
+      database:
+        condition: service_started
+      liquibase-migrations-worker:
+        condition: service_started
+    command:
+      - --hub-mode=off
+      - --changelog-file=master-order.xml
+      - --driver=org.postgresql.Driver
+      - --url=jdbc:postgresql://database:5432/freelance-order
       - --username=admin
       - --password=123
       - update
@@ -62,7 +82,7 @@ services:
       - "8888:8888"
     depends_on:
       - database
-      - liquibase-migrations
+      - liquibase-migrations-order
     networks:
       bestie:
         aliases:
@@ -140,11 +160,31 @@ services:
         aliases:
           - "auth-service"
 
-  monolit-service:
+  worker-service:
     build:
       context: .
-      dockerfile: ./monolit-service/Dockerfile
-    container_name: monolit-service
+      dockerfile: ./worker-service/Dockerfile
+    container_name: worker-service
+    ports:
+      - "8085:8085"
+    depends_on:
+      config-server:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+      gateway-server:
+        condition: service_started
+      auth-service:
+        condition: service_started
+    networks:
+      bestie:
+        aliases:
+          - "worker-service"
+  order-service:
+    build:
+      context: .
+      dockerfile: ./order-service/Dockerfile
+    container_name: order-service
     ports:
       - "8089:8089"
     depends_on:
@@ -159,7 +199,7 @@ services:
     networks:
       bestie:
         aliases:
-          - "monolit-service"
+          - "order-service"
 
 volumes:
   postgres_data:
