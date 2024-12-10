@@ -10,13 +10,7 @@
             <column name="id" type="uuid" autoIncrement="false">
                 <constraints primaryKey="true" primaryKeyName="pk_worker_id"/>
             </column>
-            <column name="first_name" type="varchar(32)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="second_name" type="varchar(32)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="middle_name" type="varchar(32)">
+            <column name="full_name" type="varchar(64)">
                 <constraints nullable="false"/>
             </column>
             <column name="registration_time" type="datetime">
@@ -25,13 +19,7 @@
             <column name="number_of_completed_orders" type="int" defaultValue="0">
                 <constraints nullable="false"/>
             </column>
-            <column name="rating" type="double" defaultValue="0.0">
-                <constraints nullable="false"/>
-            </column>
         </createTable>
-        <sql>
-            ALTER TABLE worker ADD CONSTRAINT rating_check CHECK (rating &gt;= 0.0 AND rating &lt;= 5.0)
-        </sql>
 
     </changeSet>
 </databaseChangeLog>
