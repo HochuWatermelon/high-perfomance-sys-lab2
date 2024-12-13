@@ -1,53 +1,51 @@
 package com.company.workerservice.configurations.security;
 
-
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
-import org.springframework.web.server.WebFilterChain;
-import reactor.core.publisher.Mono;
+import org.springframework.web.filter.OncePerRequestFilter;
 
+import java.io.IOException;
 import java.util.List;
 
 @Component
-public class AuthenticationFilter implements WebFilter {
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private final Logger logger = LoggerFactory.getLogger(AuthenticationFilter.class);
+public class AuthenticationFilter extends OncePerRequestFilter {
     private static final String USER_ID = "UserId";
-    private static final String USERNAME = "Username";
+    private static final String FULLNAME = "FullName";
     private static final String USER_ROLES = "UserRoles";
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        String userId = exchange.getRequest().getHeaders().getFirst(USER_ID);
-        String username = exchange.getRequest().getHeaders().getFirst(USERNAME);
-        String userRoles = exchange.getRequest().getHeaders().getFirst(USER_ROLES);
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws IOException, ServletException {
+        String userId = request.getHeader(USER_ID);
+        String fullName = request.getHeader(FULLNAME);
+        String userRolesHeader = request.getHeader(USER_ROLES);
 
-        if (userId != null && username != null && userRoles != null) {
-            List<String> roles = null;
-            try {
-                roles = objectMapper.readValue(userRoles, new TypeReference<List<String>>() {
-                });
-            } catch (JsonProcessingException e) {
-                logger.error("Failed to parse roles", e);
-            }
+        if (userId != null && fullName != null && userRolesHeader != null && !userRolesHeader.isEmpty()) {
+            logger.info(userRolesHeader);
+            List<String> userRoles = objectMapper.readValue(userRolesHeader, new TypeReference<List<String>>() {});
 
-            List<SimpleGrantedAuthority> authorities = roles.stream()
+            List<SimpleGrantedAuthority> authorities = userRoles.stream()
                     .map(SimpleGrantedAuthority::new)
                     .toList();
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userId, username, authorities);
-            return chain.filter(exchange)
-                    .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authenticationToken));
-        } else {
-            return chain.filter(exchange);
+
+            SecurityContextHolder.getContext().setAuthentication(
+                    new UsernamePasswordAuthenticationToken(userId, fullName, authorities)
+            );
         }
+
+        filterChain.doFilter(request, response);
     }
+
 }

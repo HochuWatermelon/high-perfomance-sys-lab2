@@ -18,7 +18,7 @@ import java.util.List;
 @Component
 public class AuthenticationFilter extends OncePerRequestFilter {
     private static final String USER_ID = "UserId";
-    private static final String USERNAME = "Username";
+    private static final String FULLNAME = "FullName";
     private static final String USER_ROLES = "UserRoles";
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -29,7 +29,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws IOException, ServletException {
         String userId = request.getHeader(USER_ID);
-        String username = request.getHeader(USERNAME);
+        String username = request.getHeader(FULLNAME);
         String userRolesHeader = request.getHeader(USER_ROLES);
 
         if (userId != null && username != null && userRolesHeader != null && !userRolesHeader.isEmpty()) {

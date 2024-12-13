@@ -1,9 +1,10 @@
 package com.company.orderservice.service.clients;
 
 import com.company.orderservice.configurations.feign.FeignConfiguration;
-import com.company.workerservice.model.dto.profession.ProfessionDto;
-import com.company.workerservice.model.dto.profession.WorkerProfessionDto;
-import com.company.workerservice.model.dto.worker.WorkerDto;
+
+import com.company.orderservice.model.dto.profession.ProfessionDto;
+import com.company.orderservice.model.dto.profession.WorkerProfessionDto;
+import com.company.orderservice.model.dto.worker.WorkerDto;
 import feign.Headers;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PathVariable;

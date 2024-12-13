@@ -2,10 +2,10 @@ package com.company.orderservice.service;
 
 
 import com.company.orderservice.model.dto.pageable.PageableGetDto;
+import com.company.orderservice.model.dto.profession.WorkerProfessionDto;
+import com.company.orderservice.model.dto.worker.WorkerDto;
 import com.company.orderservice.service.clients.WorkerServiceClient;
 import com.company.orderservice.util.SecurityContext;
-import com.company.workerservice.model.dto.profession.WorkerProfessionDto;
-import com.company.workerservice.model.dto.worker.WorkerDto;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

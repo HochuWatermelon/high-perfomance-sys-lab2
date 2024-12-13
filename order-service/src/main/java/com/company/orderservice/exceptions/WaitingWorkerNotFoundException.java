@@ -1,4 +1,4 @@
-package com.company.workerservice.exceptions;
+package com.company.orderservice.exceptions;
 
 import org.springframework.http.HttpStatus;
 
