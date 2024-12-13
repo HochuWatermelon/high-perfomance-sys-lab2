@@ -16,17 +16,17 @@ public class AuthFeignInterceptor implements RequestInterceptor {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final Logger logger = LoggerFactory.getLogger(AuthFeignInterceptor.class);
     private static final String USER_ID = "UserId";
-    private static final String USERNAME = "Username";
+    private static final String FULLNAME = "FullName";
     private static final String USER_ROLES = "UserRoles";
 
     @Override
     public void apply(RequestTemplate requestTemplate) {
         requestTemplate.header(USER_ID, UUID.randomUUID().toString());
-        requestTemplate.header(USERNAME, "sports-fight");
+        requestTemplate.header(FULLNAME, "sports-fight");
         try {
             requestTemplate.header(USER_ROLES, objectMapper.writeValueAsString(List.of("EXECUTOR")));
         } catch (JsonProcessingException e) {
             logger.error(e.getMessage());
-        };
+        }
     }
 }

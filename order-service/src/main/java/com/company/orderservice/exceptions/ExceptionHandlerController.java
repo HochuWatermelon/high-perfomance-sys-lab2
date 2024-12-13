@@ -29,6 +29,13 @@ public class ExceptionHandlerController{
                 .body(exception.getMessage());
     }
 
+    @ExceptionHandler(WaitingWorkerNotFoundException.class)
+    public ResponseEntity<String> handleWaitingWorkerNotFoundException(WaitingWorkerNotFoundException exception) {
+        return ResponseEntity
+                .status(exception.getHttpStatus())
+                .body(exception.getMessage());
+    }
+
     @ExceptionHandler(NotEnoughRightsException.class)
     public ResponseEntity<String> handleNotEnoughRightsException(NotEnoughRightsException exception) {
         return ResponseEntity

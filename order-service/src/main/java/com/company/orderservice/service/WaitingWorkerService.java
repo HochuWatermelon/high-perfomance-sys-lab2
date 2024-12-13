@@ -1,7 +1,7 @@
 package com.company.orderservice.service;
 
+import com.company.orderservice.exceptions.WaitingWorkerNotFoundException;
 import com.company.orderservice.model.entity.WaitingWorkerEntity;
-import com.company.workerservice.exceptions.WaitingWorkerNotFoundException;
 import com.company.orderservice.repository.WaitingWorkerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

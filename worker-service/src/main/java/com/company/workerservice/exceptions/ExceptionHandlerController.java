@@ -36,13 +36,6 @@ public class ExceptionHandlerController{
                 .body(exception.getMessage());
     }
 
-    @ExceptionHandler(WaitingWorkerNotFoundException.class)
-    public ResponseEntity<String> handleWaitingWorkerNotFoundException(WaitingWorkerNotFoundException exception) {
-        return ResponseEntity
-                .status(exception.getHttpStatus())
-                .body(exception.getMessage());
-    }
-
     @ExceptionHandler(WorkerNotFoundException.class)
     public ResponseEntity<String> handleWorkerNotFoundException(WorkerNotFoundException exception) {
         return ResponseEntity
